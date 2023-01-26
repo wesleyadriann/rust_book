@@ -21,12 +21,22 @@ cargo run
 ```
 
 Buildar projeto sem gerar executável para checar erros
-```
+```sh
 cargo check
 ```
 
 Buildar com otimizaçōes (prd)
 
-```
+```sh
 cargo build --release
+```
+
+Atualizar dependencias (não ira ler o .lock)
+```sh
+cargo update
+```
+
+Abrir docs
+```sh
+cargo doc --open
 ```
