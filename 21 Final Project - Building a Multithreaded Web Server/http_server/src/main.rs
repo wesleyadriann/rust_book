@@ -2,7 +2,11 @@ use std::{
   fs,
   io::{prelude::*, BufReader, BufRead},
   net::{TcpListener, TcpStream},
+  thread,
+  time::Duration,
 };
+
+use http_server::ThreadPool;
 
 fn main() {
   const PORT: u16 = 7878;
@@ -18,9 +22,14 @@ fn main() {
     }
   };
 
+  let pool = ThreadPool::new(4);
+
   for stream in listener.incoming() {
     let stream = stream.unwrap();
-    handle_connection(stream);
+
+    pool.execute(|| {
+      handle_connection(stream);
+    })
   }
 }
 
@@ -34,10 +43,13 @@ fn handle_connection(mut stream: TcpStream) {
 
   let content_type = "Content-Type: application/json";
 
-  let (status_line, filename) = if request_line == "GET / HTTP/1.1" {
-    ("200 OK", "200.json")
-  } else {
-    ("404 NOT FOUND", "404.json")
+  let (status_line, filename) = match &request_line[..] {
+    "GET / HTTP/1.1" => ("200 OK", "200.json"),
+    "GET /sleep HTTP/1.1" => {
+      thread::sleep(Duration::from_secs(5));
+      ("200 OK", "200.json")
+    },
+    _ => ("404 NOT FOUND", "404.json"),
   };
 
   let content = fs::read_to_string(filename).unwrap();
