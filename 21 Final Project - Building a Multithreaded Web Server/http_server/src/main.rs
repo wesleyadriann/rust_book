@@ -17,20 +17,22 @@ fn main() {
       result
     },
     Err(err) => {
-      println!("Error to start server - message {}", err);
+      println!("Error to start server - Exception: {}", err);
       return
     }
   };
 
   let pool = ThreadPool::new(4);
 
-  for stream in listener.incoming() {
+  for stream in listener.incoming().take(2) {
     let stream = stream.unwrap();
 
     pool.execute(|| {
       handle_connection(stream);
     })
   }
+
+  println!("Shutting down.");
 }
 
 fn handle_connection(mut stream: TcpStream) {
